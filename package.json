@@ -1,6 +1,6 @@
 {
   "name": "simple-migration",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A very tiny and simple migration manager for node and mysql",
   "main": "dist/index.js",
   "scripts": {
