@@ -4,6 +4,7 @@ import mysql from 'mysql2';
 import {
   createMigrationsTable,
   endPool,
+  execMigration,
   getMigrations,
   tableExists,
 } from './db-operations';
@@ -87,11 +88,25 @@ export default async function migrateLatest(
       sqlFilesToExecute.push(sqlFiles[i]);
     }
 
-    sqlFilesToExecute.forEach(sqlFile => {
-      sqlFile.content =  fs.readFileSync(resolve(migrationsFolder, sqlFile.fileName)).toString();
-    })
+    sqlFilesToExecute.forEach((sqlFile) => {
+      sqlFile.content = fs
+        .readFileSync(resolve(migrationsFolder, sqlFile.fileName))
+        .toString();
+    });
 
-    console.log(sqlFilesToExecute)
+    //
+    // Exec each migration
+    for (let i = 0; i < sqlFilesToExecute.length; i++) {
+      await execMigration(pool, sqlFilesToExecute[i]);
+    }
+
+    if (sqlFilesToExecute.length) {
+      console.log(
+        `\x1b[32mSuccessfully executed ${sqlFilesToExecute.length} migrations\x1b[0m`
+      );
+    } else {
+      console.log(`\x1b[32mNo migration to execute\x1b[0m`);
+    }
   } finally {
     // End the pool, if get some error ignores it
     try {

@@ -1,4 +1,8 @@
 import mysql from 'mysql2';
+import { SQLFile } from '.';
+
+let isoDate = new Date().toISOString();
+isoDate = isoDate.substring(0, isoDate.length - 1)
 
 export function tableExists(pool: mysql.Pool, tableName: string) {
   return new Promise<boolean>((res) => {
@@ -13,15 +17,9 @@ export function tableExists(pool: mysql.Pool, tableName: string) {
   });
 }
 
-export function createMigrationsTable(pool: mysql.Pool) {
+function execQuery(pool: mysql.Pool, sql: string) {
   return new Promise<any>((res, rej) => {
-    const query = `
-CREATE TABLE migrations (
-  num INT PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  executed DATETIME NOT NULL
-);`;
-    pool.execute(query, (err, result) => {
+    pool.execute(sql, (err, result) => {
       if (err) {
         rej(err);
       } else {
@@ -29,6 +27,16 @@ CREATE TABLE migrations (
       }
     });
   });
+}
+
+export function createMigrationsTable(pool: mysql.Pool) {
+  const query = `
+CREATE TABLE migrations (
+num INT PRIMARY KEY,
+name VARCHAR(255) NOT NULL,
+executed DATETIME NOT NULL
+);`;
+  return execQuery(pool, query);
 }
 
 export function endPool(pool: mysql.Pool) {
@@ -40,14 +48,14 @@ export function endPool(pool: mysql.Pool) {
 }
 
 export function getMigrations(pool: mysql.Pool) {
-  return new Promise<any>((res, rej) => {
-    const query = `SELECT num, name FROM migrations`;
-    pool.execute(query, (err, result) => {
-      if (err) {
-        rej(err);
-      } else {
-        res(result);
-      }
-    });
-  });
+  const query = `SELECT num, name FROM migrations`;
+  return execQuery(pool, query);
+}
+
+export async function execMigration(pool: mysql.Pool, sqlFile: SQLFile) {
+  await execQuery(pool, sqlFile.content!);
+  await execQuery(
+    pool,
+    `INSERT INTO migrations VALUES (${sqlFile.num}, '${sqlFile.name}', '${isoDate}')`
+  );
 }

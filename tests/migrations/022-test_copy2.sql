@@ -1,3 +1,1 @@
-DROP TABLE IF EXISTS `test_table22`;
-
-CREATE TABLE `test_table` (id INT PRIMARY KEY);
+CREATE TABLE `test_table22` (id INT PRIMARY KEY);
