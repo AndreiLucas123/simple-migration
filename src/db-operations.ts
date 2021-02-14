@@ -38,3 +38,16 @@ export function endPool(pool: mysql.Pool) {
     });
   });
 }
+
+export function getMigrations(pool: mysql.Pool) {
+  return new Promise<any>((res, rej) => {
+    const query = `SELECT num, name FROM migrations`;
+    pool.execute(query, (err, result) => {
+      if (err) {
+        rej(err);
+      } else {
+        res(result);
+      }
+    });
+  });
+}

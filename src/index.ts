@@ -1,7 +1,12 @@
 import { resolve } from 'path';
 import fs from 'fs';
 import mysql from 'mysql2';
-import { createMigrationsTable, endPool, tableExists } from './db-operations';
+import {
+  createMigrationsTable,
+  endPool,
+  getMigrations,
+  tableExists,
+} from './db-operations';
 
 export interface ConnectionObject {
   host: string;
@@ -13,13 +18,13 @@ export interface ConnectionObject {
 export interface SQLFile {
   num: number;
   content?: string;
-  fileName: string;
+  name: string;
 }
 
 function sortSQLFiles(a: SQLFile, b: SQLFile) {
   if (a.num < b.num) return -1;
   if (a.num > b.num) return 1;
-  throw new Error(`${a.fileName} and ${b.fileName} has the same number`);
+  throw new Error(`${a.name} and ${b.name} has the same number`);
 }
 
 export default async function migrateLatest(
@@ -39,19 +44,41 @@ export default async function migrateLatest(
       const num = Number.parseInt(f.substring(0, index));
       return {
         num,
-        fileName: f,
+        name: f.substring(index + 1, f.length - 4),
       };
     })
     .sort(sortSQLFiles);
 
+  console.log(sqlFiles);
+
   // Makes the db operations
   const pool = mysql.createPool(conn);
 
-  if (!(await tableExists(pool, 'migrations'))) {
-    await createMigrationsTable(pool);
+  try {
+    if (!(await tableExists(pool, 'migrations'))) {
+      await createMigrationsTable(pool);
+    }
+
+    const migrationsFromDB = await getMigrations(pool);
+
+    // Check if the migration is corrupted
+    // That means, if the migrations on db is the same with the files
+    if (sqlFiles.length < migrationsFromDB.length) {
+      throw new Error('Migration files is corrupted');
+    }
+
+    for (let i = 0; i < migrationsFromDB.length; i++) {
+      if (migrationsFromDB[i].num !== sqlFiles[i].num) {
+        throw new Error('Migration files is corrupted');
+      }
+      if (migrationsFromDB[i].name !== sqlFiles[i].name) {
+        throw new Error('Migration files is corrupted');
+      }
+    }
+  } finally {
+    // End the pool, if get some error ignores it
+    try {
+      endPool(pool);
+    } catch (error) {}
   }
-
-  endPool(pool);
-
-  console.log(sqlFiles);
 }
