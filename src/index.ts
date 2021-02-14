@@ -1,6 +1,7 @@
 import { resolve } from 'path';
 import fs from 'fs';
 import mysql from 'mysql2';
+import { createMigrationsTable, endPool, tableExists } from './db-operations';
 
 export interface ConnectionObject {
   host: string;
@@ -43,11 +44,14 @@ export default async function migrateLatest(
     })
     .sort(sortSQLFiles);
 
-  const mysqlConn = mysql.createConnection(conn);
+  // Makes the db operations
+  const pool = mysql.createPool(conn);
 
-  mysqlConn.connect((err) => {
+  if (!(await tableExists(pool, 'migrations'))) {
+    await createMigrationsTable(pool);
+  }
 
-  })
+  endPool(pool);
 
   console.log(sqlFiles);
 }
