@@ -11,3 +11,7 @@ Each `.sql` file has to be named `n-<migration-name>`
   - 001-create_user
   - 02-custumers_table
   - 1002-remove_column_x
+
+#### Obs
+
+The initial numbers will be sorted

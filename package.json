@@ -4,7 +4,7 @@
   "description": "A very tiny and simple migration manager for node and mysql",
   "main": "dist/index.js",
   "scripts": {
-    "test": "set NODE_ENV=test && mocha 'tests/**/*.js'",
+    "test": "tsc && mocha 'tests/**/*.js'",
     "build": "tsc",
     "prepublishOnly": "npm run build"
   },
