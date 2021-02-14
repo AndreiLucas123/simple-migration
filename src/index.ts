@@ -1,9 +1,8 @@
 import { resolve } from 'path';
 import fs from 'fs';
-import mysql from 'mysql2';
+import mysql from 'mysql2/promise';
 import {
   createMigrationsTable,
-  endPool,
   execMigration,
   getMigrations,
   tableExists,
@@ -110,7 +109,7 @@ export default async function migrateLatest(
   } finally {
     // End the pool, if get some error ignores it
     try {
-      endPool(pool);
+      await pool.end();
     } catch (error) {}
   }
 }

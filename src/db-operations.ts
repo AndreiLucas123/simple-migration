@@ -1,32 +1,18 @@
-import mysql from 'mysql2';
+import mysql from 'mysql2/promise';
 import { SQLFile } from '.';
 
 let isoDate = new Date().toISOString();
-isoDate = isoDate.substring(0, isoDate.length - 1)
+isoDate = isoDate.substring(0, isoDate.length - 1) + 'aaaaaaaaa';
+const date = new Date()
 
 export function tableExists(pool: mysql.Pool, tableName: string) {
-  return new Promise<boolean>((res) => {
-    const query = `SELECT 1 FROM ${tableName} LIMIT 1;`;
-    pool.execute(query, (err) => {
-      if (err) {
-        res(false);
-      } else {
-        res(true);
-      }
-    });
-  });
-}
-
-function execQuery(pool: mysql.Pool, sql: string) {
-  return new Promise<any>((res, rej) => {
-    pool.execute(sql, (err, result) => {
-      if (err) {
-        rej(err);
-      } else {
-        res(result);
-      }
-    });
-  });
+  const query = `SELECT 1 FROM ${tableName} LIMIT 1;`;
+  try {
+    pool.execute(query);
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 export function createMigrationsTable(pool: mysql.Pool) {
@@ -36,26 +22,23 @@ num INT PRIMARY KEY,
 name VARCHAR(255) NOT NULL,
 executed DATETIME NOT NULL
 );`;
-  return execQuery(pool, query);
-}
-
-export function endPool(pool: mysql.Pool) {
-  return new Promise<any>((res, rej) => {
-    pool.end((err) => {
-      err ? rej(err) : res(true);
-    });
-  });
+  return pool.execute(query);
 }
 
 export function getMigrations(pool: mysql.Pool) {
   const query = `SELECT num, name FROM migrations`;
-  return execQuery(pool, query);
+  return pool.execute(query) as any as any[];
 }
 
 export async function execMigration(pool: mysql.Pool, sqlFile: SQLFile) {
-  await execQuery(pool, sqlFile.content!);
-  await execQuery(
-    pool,
-    `INSERT INTO migrations VALUES (${sqlFile.num}, '${sqlFile.name}', '${isoDate}')`
-  );
+  const conn = await pool.getConnection();
+  await conn.beginTransaction();
+  try {
+    await conn.execute(sqlFile.content!);
+    await conn.query(`INSERT INTO migrations VALUES (?, ?, ?)`, [sqlFile.num, sqlFile.name, date])
+    await conn.commit();
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  }
 }
