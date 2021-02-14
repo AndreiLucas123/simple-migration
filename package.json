@@ -23,5 +23,8 @@
   "files": [
     "dist"
   ],
-  "homepage": "https://github.com/AndreiLucas123/vite-plugin-avr-css/tree/master/#readme"
+  "homepage": "https://github.com/AndreiLucas123/vite-plugin-avr-css/tree/master/#readme",
+  "dependencies": {
+    "mysql": "^2.18.1"
+  }
 }
