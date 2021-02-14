@@ -19,6 +19,7 @@ export interface SQLFile {
   num: number;
   content?: string;
   name: string;
+  fileName: string;
 }
 
 function sortSQLFiles(a: SQLFile, b: SQLFile) {
@@ -34,6 +35,7 @@ export default async function migrateLatest(
   // Get the migrations folder
   const migrationsFolder = resolve(process.cwd(), migrationPath);
 
+  //
   // Get every-file in migrations folder
   // Filter, convert to SQLFile objects and sort
   const sqlFiles = fs
@@ -45,12 +47,12 @@ export default async function migrateLatest(
       return {
         num,
         name: f.substring(index + 1, f.length - 4),
+        fileName: f,
       };
     })
     .sort(sortSQLFiles);
 
-  console.log(sqlFiles);
-
+  //
   // Makes the db operations
   const pool = mysql.createPool(conn);
 
@@ -61,6 +63,7 @@ export default async function migrateLatest(
 
     const migrationsFromDB = await getMigrations(pool);
 
+    //
     // Check if the migration is corrupted
     // That means, if the migrations on db is the same with the files
     if (sqlFiles.length < migrationsFromDB.length) {
@@ -75,6 +78,20 @@ export default async function migrateLatest(
         throw new Error('Migration files is corrupted');
       }
     }
+
+    //
+    // Get every new migration that will be executed
+    const sqlFilesToExecute: SQLFile[] = [];
+
+    for (let i = migrationsFromDB.length; i < sqlFiles.length; i++) {
+      sqlFilesToExecute.push(sqlFiles[i]);
+    }
+
+    sqlFilesToExecute.forEach(sqlFile => {
+      sqlFile.content =  fs.readFileSync(resolve(migrationsFolder, sqlFile.fileName)).toString();
+    })
+
+    console.log(sqlFilesToExecute)
   } finally {
     // End the pool, if get some error ignores it
     try {
