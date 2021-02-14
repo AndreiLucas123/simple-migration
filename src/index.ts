@@ -54,7 +54,7 @@ export default async function migrateLatest(
 
   //
   // Makes the db operations
-  const pool = mysql.createPool(conn);
+  const pool = mysql.createPool({ multipleStatements: true, ...conn });
 
   try {
     if (!(await tableExists(pool, 'migrations'))) {

@@ -4,10 +4,10 @@ import { SQLFile } from '.';
 let isoDate = new Date().toISOString();
 isoDate = isoDate.substring(0, isoDate.length - 1);
 
-export function tableExists(pool: mysql.Pool, tableName: string) {
+export async function tableExists(pool: mysql.Pool, tableName: string) {
   const query = `SELECT 1 FROM ${tableName} LIMIT 1;`;
   try {
-    pool.execute(query);
+    await pool.execute(query);
     return true;
   } catch (error) {
     return false;
@@ -33,7 +33,7 @@ export async function execMigration(pool: mysql.Pool, sqlFile: SQLFile) {
   const conn = await pool.getConnection();
   await conn.beginTransaction();
   try {
-    await conn.execute(sqlFile.content!);
+    await conn.query(sqlFile.content!);
 
     await conn.query(`INSERT INTO migrations VALUES (?, ?, ?)`, [
       sqlFile.num,
