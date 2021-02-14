@@ -2,8 +2,7 @@ import mysql from 'mysql2/promise';
 import { SQLFile } from '.';
 
 let isoDate = new Date().toISOString();
-isoDate = isoDate.substring(0, isoDate.length - 1) + 'aaaaaaaaa';
-const date = new Date()
+isoDate = isoDate.substring(0, isoDate.length - 1);
 
 export function tableExists(pool: mysql.Pool, tableName: string) {
   const query = `SELECT 1 FROM ${tableName} LIMIT 1;`;
@@ -27,7 +26,7 @@ executed DATETIME NOT NULL
 
 export function getMigrations(pool: mysql.Pool) {
   const query = `SELECT num, name FROM migrations`;
-  return pool.execute(query) as any as any[];
+  return pool.execute(query) as Promise<any[]>;
 }
 
 export async function execMigration(pool: mysql.Pool, sqlFile: SQLFile) {
@@ -35,10 +34,18 @@ export async function execMigration(pool: mysql.Pool, sqlFile: SQLFile) {
   await conn.beginTransaction();
   try {
     await conn.execute(sqlFile.content!);
-    await conn.query(`INSERT INTO migrations VALUES (?, ?, ?)`, [sqlFile.num, sqlFile.name, date])
+
+    await conn.query(`INSERT INTO migrations VALUES (?, ?, ?)`, [
+      sqlFile.num,
+      sqlFile.name,
+      isoDate,
+    ]);
+
     await conn.commit();
   } catch (error) {
     await conn.rollback();
     throw error;
+  } finally {
+    if (conn) await conn.release();
   }
 }

@@ -61,7 +61,7 @@ export default async function migrateLatest(
       await createMigrationsTable(pool);
     }
 
-    const migrationsFromDB = await getMigrations(pool);
+    const migrationsFromDB = (await getMigrations(pool))[0];
 
     //
     // Check if the migration is corrupted
