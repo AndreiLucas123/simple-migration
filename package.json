@@ -27,6 +27,7 @@
   "homepage": "https://github.com/AndreiLucas123/vite-plugin-avr-css/tree/master/#readme",
   "devDependencies": {
     "@types/node": "^14.14.27",
+    "dotenv": "^8.2.0",
     "mocha": "^8.3.0"
   },
   "dependencies": {
