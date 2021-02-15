@@ -1,5 +1,5 @@
 import mysql from 'mysql2/promise';
-import { SQLFile } from '.';
+import { SQLFile } from './migrate-latest';
 
 let isoDate = new Date().toISOString();
 isoDate = isoDate.substring(0, isoDate.length - 1);

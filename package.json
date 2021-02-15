@@ -1,6 +1,6 @@
 {
   "name": "tiny-migration",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A very tiny and simple migration manager for node and mysql",
   "main": "dist/index.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "prepublishOnly": "npm run build"
   },
   "bin": {
-    "mig": "dist/cli.js"
+    "mig": "./bin/cli.js"
   },
   "keywords": [
     "migration",
@@ -25,7 +25,8 @@
     "url": "https://github.com/AndreiLucas123/tiny-migration/issues"
   },
   "files": [
-    "dist"
+    "dist/*",
+    "cli/*"
   ],
   "homepage": "https://github.com/AndreiLucas123/tiny-migration/tree/master/#readme",
   "devDependencies": {
