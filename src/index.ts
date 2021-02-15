@@ -15,7 +15,7 @@ export interface ConnectionObject {
   database: string;
 }
 
-export interface SQLFile {
+interface SQLFile {
   num: number;
   content?: string;
   name: string;
@@ -28,7 +28,7 @@ function sortSQLFiles(a: SQLFile, b: SQLFile) {
   throw new Error(`${a.name} and ${b.name} has the same number`);
 }
 
-export default async function migrateLatest(
+export async function migrateLatest(
   conn: ConnectionObject,
   migrationPath: string = 'migrations'
 ) {
