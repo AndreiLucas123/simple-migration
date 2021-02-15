@@ -15,7 +15,7 @@ export interface ConnectionObject {
   database: string;
 }
 
-interface SQLFile {
+export interface SQLFile {
   num: number;
   content?: string;
   name: string;
